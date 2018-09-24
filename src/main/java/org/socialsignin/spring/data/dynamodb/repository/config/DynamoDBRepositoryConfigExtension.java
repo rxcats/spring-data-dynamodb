@@ -15,13 +15,22 @@
  */
 package org.socialsignin.spring.data.dynamodb.repository.config;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.socialsignin.spring.data.dynamodb.mapping.DynamoDBMappingContext;
 import org.socialsignin.spring.data.dynamodb.repository.support.DynamoDBRepositoryFactoryBean;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.data.config.BeanComponentDefinitionBuilder;
 import org.springframework.data.config.ParsingUtils;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
+import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.data.repository.config.XmlRepositoryConfigurationSource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -33,6 +42,8 @@ import org.w3c.dom.Element;
  */
 public class DynamoDBRepositoryConfigExtension extends RepositoryConfigurationExtensionSupport {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBRepositoryConfigExtension.class);
+	
 	private static final String DEFAULT_AMAZON_DYNAMO_DB_BEAN_NAME = "amazonDynamoDB";
 
 	private static final String DYNAMO_DB_MAPPER_CONFIG_REF = "dynamodb-mapper-config-ref";
@@ -42,6 +53,8 @@ public class DynamoDBRepositoryConfigExtension extends RepositoryConfigurationEx
 	private static final String AMAZON_DYNAMODB_REF = "amazon-dynamodb-ref";
 
 	private static final String MAPPING_CONTEXT_REF = "mapping-context-ref";
+	
+	private BeanDefinitionRegistry registry;
 
 	@Override
 	public String getRepositoryFactoryBeanClassName() {
@@ -54,7 +67,6 @@ public class DynamoDBRepositoryConfigExtension extends RepositoryConfigurationEx
 
 		postProcess(builder, attributes.getString("amazonDynamoDBRef"), attributes.getString("dynamoDBMapperConfigRef"),
 				attributes.getString("dynamoDBOperationsRef"), attributes.getString("mappingContextRef"));
-
 	}
 
 	/*
@@ -68,9 +80,9 @@ public class DynamoDBRepositoryConfigExtension extends RepositoryConfigurationEx
 	 */
 	@Override
 	public void postProcess(BeanDefinitionBuilder builder, XmlRepositoryConfigurationSource config) {
-
 		Element element = config.getElement();
 
+		
 		ParsingUtils.setPropertyReference(builder, element, AMAZON_DYNAMODB_REF, "amazonDynamoDB");
 		ParsingUtils.setPropertyReference(builder, element, DYNAMO_DB_MAPPER_CONFIG_REF, "dynamoDBMapperConfig");
 		ParsingUtils.setPropertyReference(builder, element, DYNAMO_DB_OPERATIONS_REF, "dynamoDBOperations");
@@ -100,11 +112,25 @@ public class DynamoDBRepositoryConfigExtension extends RepositoryConfigurationEx
 			}
 		}
 
-		if (StringUtils.hasText(dynamoDBMappingContextRef)) {
-			builder.addPropertyReference("dynamoDBMappingContext", dynamoDBMappingContextRef);
-		} else {
-			builder.addPropertyValue("dynamoDBMappingContext", new DynamoDBMappingContext());
+		if (!StringUtils.hasText(dynamoDBMappingContextRef)) {
+			BeanDefinitionBuilder dynamoDBMappingContextBuilder = BeanDefinitionBuilder.genericBeanDefinition(DynamoDBMappingContext.class);
+			dynamoDBMappingContextRef = getModulePrefix() + "-dynamoDBMappingContext";
+			
+			LOGGER.debug("Adding bean <{}> of type <{}>", dynamoDBMappingContextRef, dynamoDBMappingContextBuilder.getBeanDefinition());
+			
+			assert registry != null;
+			registry.registerBeanDefinition(dynamoDBMappingContextRef, dynamoDBMappingContextBuilder.getBeanDefinition());
 		}
+		builder.addPropertyReference("dynamoDBMappingContext", dynamoDBMappingContextRef);
+	}
+	
+	@Override
+	public void registerBeansForRoot(BeanDefinitionRegistry registry,
+			RepositoryConfigurationSource configurationSource) {
+		super.registerBeansForRoot(registry, configurationSource);
+		
+		// Store for later to be used by #postProcess
+		this.registry = registry;
 	}
 
 	@Override
