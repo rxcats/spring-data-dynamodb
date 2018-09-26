@@ -15,18 +15,18 @@
  */
 package org.socialsignin.spring.data.dynamodb.repository.config;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.stream.StreamSupport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.socialsignin.spring.data.dynamodb.core.DynamoDBTemplate;
 import org.socialsignin.spring.data.dynamodb.mapping.DynamoDBMappingContext;
 import org.socialsignin.spring.data.dynamodb.repository.support.DynamoDBRepositoryFactoryBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.annotation.AnnotationAttributes;
-import org.springframework.data.config.BeanComponentDefinitionBuilder;
 import org.springframework.data.config.ParsingUtils;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
@@ -35,6 +35,9 @@ import org.springframework.data.repository.config.XmlRepositoryConfigurationSour
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
+
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
 
 /**
  * @author Michael Lavelle
@@ -55,6 +58,8 @@ public class DynamoDBRepositoryConfigExtension extends RepositoryConfigurationEx
 	private static final String MAPPING_CONTEXT_REF = "mapping-context-ref";
 	
 	private BeanDefinitionRegistry registry;
+
+	private String dynamoDBTemplateName;
 
 	@Override
 	public String getRepositoryFactoryBeanClassName() {
@@ -104,8 +109,11 @@ public class DynamoDBRepositoryConfigExtension extends RepositoryConfigurationEx
 			amazonDynamoDBRef = StringUtils.hasText(amazonDynamoDBRef)
 					? amazonDynamoDBRef
 					: DEFAULT_AMAZON_DYNAMO_DB_BEAN_NAME;
+			
+			builder.addPropertyReference("dynamoDBOperations", dynamoDBTemplateName);
 
-			builder.addPropertyReference("amazonDynamoDB", amazonDynamoDBRef);
+			
+			//builder.addPropertyReference("amazonDynamoDB", amazonDynamoDBRef);
 
 			if (StringUtils.hasText(dynamoDBMapperConfigRef)) {
 				builder.addPropertyReference("dynamoDBMapperConfig", dynamoDBMapperConfigRef);
@@ -114,7 +122,7 @@ public class DynamoDBRepositoryConfigExtension extends RepositoryConfigurationEx
 
 		if (!StringUtils.hasText(dynamoDBMappingContextRef)) {
 			BeanDefinitionBuilder dynamoDBMappingContextBuilder = BeanDefinitionBuilder.genericBeanDefinition(DynamoDBMappingContext.class);
-			dynamoDBMappingContextRef = getModulePrefix() + "-dynamoDBMappingContext";
+			dynamoDBMappingContextRef = getBeanNameWithModulePrefix("DynamoDBMappingContext");
 			
 			LOGGER.debug("Adding bean <{}> of type <{}>", dynamoDBMappingContextRef, dynamoDBMappingContextBuilder.getBeanDefinition());
 			
@@ -129,10 +137,33 @@ public class DynamoDBRepositoryConfigExtension extends RepositoryConfigurationEx
 			RepositoryConfigurationSource configurationSource) {
 		super.registerBeansForRoot(registry, configurationSource);
 		
-		// Store for later to be used by #postProcess
+		// Store for later to be used by #postProcess, too
 		this.registry = registry;
+		
+		BeanDefinitionBuilder tableInitialzierBuilder = BeanDefinitionBuilder.genericBeanDefinition(DynamoDBTableCreator.class);
+		registry.registerBeanDefinition(getBeanNameWithModulePrefix("DynamoDBTableCreator"), tableInitialzierBuilder.getBeanDefinition());
+	
+		BeanDefinitionBuilder dynamoDBTemplateBuilder = BeanDefinitionBuilder.genericBeanDefinition(DynamoDBTemplate.class);
+		dynamoDBTemplateName = getBeanNameWithModulePrefix("DynamoDBTemplate");
+		registry.registerBeanDefinition(dynamoDBTemplateName, dynamoDBTemplateBuilder.getBeanDefinition());
+	
+		boolean hasNoMapperConfig = Arrays.stream(registry.getBeanDefinitionNames())
+			.map(registry::getBeanDefinition)
+			.map(bd -> DynamoDBMapperConfig.class.getName().equals(bd.getBeanClassName()))
+			.count() != 0;
+		if (hasNoMapperConfig) {
+			BeanDefinitionBuilder dynamoDBMapperConfigBuiilder = BeanDefinitionBuilder.genericBeanDefinition(DynamoDBMapperConfigFactory.class);
+			registry.registerBeanDefinition(getBeanNameWithModulePrefix("DynamoDBMapperConfig"), dynamoDBMapperConfigBuiilder.getBeanDefinition());
+		}
+		
+		BeanDefinitionBuilder dynamoDBMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(DynamoDBMapperFactory.class);
+		registry.registerBeanDefinition(getBeanNameWithModulePrefix("DynamoDBMapper"), dynamoDBMapperBuilder.getBeanDefinition());
 	}
-
+	
+	protected String getBeanNameWithModulePrefix(String baseBeanName) {
+		return String.format("%s-%s", getModulePrefix(), baseBeanName);
+	}
+	
 	@Override
 	protected String getModulePrefix() {
 		return "dynamoDB";

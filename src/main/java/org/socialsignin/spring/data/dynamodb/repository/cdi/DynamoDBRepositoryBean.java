@@ -101,7 +101,7 @@ class DynamoDBRepositoryBean<T> extends CdiRepositoryBean<T> {
 				: getDependencyInstance(dynamoDBOperationsBean, DynamoDBOperations.class);
 
 		if (dynamoDBOperations == null) {
-			dynamoDBOperations = new DynamoDBTemplate(amazonDynamoDB, dynamoDBMapperConfig);
+			dynamoDBOperations = new DynamoDBTemplate(amazonDynamoDB, null, dynamoDBMapperConfig);
 		}
 
 		DynamoDBRepositoryFactory factory = new DynamoDBRepositoryFactory(dynamoDBOperations);

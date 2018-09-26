@@ -58,7 +58,7 @@ public class DynamoDBRepositoryFactoryBeanTest {
 	public void setUp() {
 		underTest = spy(new DynamoDBRepositoryFactoryBean<>(UserRepository.class));
 		underTest.setApplicationContext(applicationContext);
-		underTest.setDynamoDBMapperConfig(dynamoDBMapperConfig);
+		//underTest.setDynamoDBMapperConfig(dynamoDBMapperConfig);
 		underTest.setDynamoDBMappingContext(dynamoDBMappingContext);
 	}
 
@@ -86,7 +86,7 @@ public class DynamoDBRepositoryFactoryBeanTest {
 			assertTrue(true);
 		}
 
-		underTest.setAmazonDynamoDB(amazonDynamoDB);
+		//underTest.setAmazonDynamoDB(amazonDynamoDB);
 		underTest.afterPropertiesSet();
 
 		assertNotNull(underTest.getPersistentEntity());

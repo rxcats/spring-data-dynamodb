@@ -45,20 +45,12 @@ public class DynamoDBRepositoryFactoryBean<T extends Repository<S, ID>, S, ID ex
 		implements
 			ApplicationContextAware {
 
-	private DynamoDBMapperConfig dynamoDBMapperConfig;
-
-	private AmazonDynamoDB amazonDynamoDB;
-
 	private DynamoDBOperations dynamoDBOperations;
 
 	private ApplicationContext applicationContext;
 
 	public DynamoDBRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
 		super(repositoryInterface);
-	}
-
-	public void setAmazonDynamoDB(AmazonDynamoDB amazonDynamoDB) {
-		this.amazonDynamoDB = amazonDynamoDB;
 	}
 
 	@Override
@@ -68,20 +60,8 @@ public class DynamoDBRepositoryFactoryBean<T extends Repository<S, ID>, S, ID ex
 
 	@Override
 	protected RepositoryFactorySupport createRepositoryFactory() {
-		if (dynamoDBOperations == null) {
-			/**
-			 * The ApplicationContextAware within DynamoDBTemplate is not executed as
-			 * DynamoDBTemplate is not initialized as a bean
-			 */
-			DynamoDBTemplate dynamoDBTemplate = new DynamoDBTemplate(amazonDynamoDB, dynamoDBMapperConfig);
-			dynamoDBTemplate.setApplicationContext(applicationContext);
-			dynamoDBOperations = dynamoDBTemplate;
-		}
+		assert dynamoDBOperations != null;
 		return new DynamoDBRepositoryFactory(dynamoDBOperations);
-	}
-
-	public void setDynamoDBMapperConfig(DynamoDBMapperConfig dynamoDBMapperConfig) {
-		this.dynamoDBMapperConfig = dynamoDBMapperConfig;
 	}
 
 	public void setDynamoDBOperations(DynamoDBOperations dynamoDBOperations) {
