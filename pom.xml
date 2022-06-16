@@ -41,7 +41,7 @@
         <spring-data.version>2.6.0</spring-data.version>
 
         <hibernate-validator.version>7.0.1.Final</hibernate-validator.version>
-        <aws-java-sdk.version>1.11.838</aws-java-sdk.version>
+        <aws-java-sdk.version>1.12.241</aws-java-sdk.version>
         <junit.version>4.13.2</junit.version>
         <mockito.version>2.23.0</mockito.version>
         <cdi.version>2.0</cdi.version>
