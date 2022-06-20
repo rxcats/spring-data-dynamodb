@@ -43,7 +43,7 @@
         <hibernate-validator.version>6.2.3.Final</hibernate-validator.version>
         <aws-java-sdk.version>1.12.243</aws-java-sdk.version>
         <junit.version>4.13.2</junit.version>
-        <mockito.version>2.23.0</mockito.version>
+        <mockito.version>4.6.1</mockito.version>
         <cdi.version>2.0.SP1</cdi.version>
         <slf4j-test.version>1.2.0</slf4j-test.version>
         <sqlite4java.version>1.0.392</sqlite4java.version>
