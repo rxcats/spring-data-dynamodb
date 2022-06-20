@@ -189,7 +189,7 @@ public class SimpleDynamoDBCrudRepository<T, ID>
 		dynamoDBOperations.delete(entity);
 	}
 
-	@Override
+    @Override
 	public void deleteAll(Iterable<? extends T> entities) {
 
 		Assert.notNull(entities, "The given Iterable of entities not be null!");
@@ -207,4 +207,30 @@ public class SimpleDynamoDBCrudRepository<T, ID>
 	public DynamoDBEntityInformation<T, ID> getEntityInformation() {
 		return this.entityInformation;
 	}
+
+    @Override
+    public void deleteAllById(Iterable<? extends ID> ids) {
+        Assert.notNull(ids, "The given ids must not be null!");
+
+        // Works only with non-parallel streams!
+        AtomicInteger idx = new AtomicInteger();
+        List<KeyPair> keyPairs = StreamSupport.stream(ids.spliterator(), false).map(id -> {
+
+            Assert.notNull(id, "The given id at position " + idx.getAndIncrement() + " must not be null!");
+
+            if (entityInformation.isRangeKeyAware()) {
+                return new KeyPair().withHashKey(entityInformation.getHashKey(id))
+                        .withRangeKey(entityInformation.getRangeKey(id));
+            } else {
+                return new KeyPair().withHashKey(id);
+            }
+        }).collect(Collectors.toList());
+
+        Map<Class<?>, List<KeyPair>> keyPairsMap = Collections.<Class<?>, List<KeyPair>>singletonMap(domainType,
+                keyPairs);
+        
+        List<T> result = dynamoDBOperations.batchLoad(keyPairsMap);
+        
+        dynamoDBOperations.batchDelete(result);
+    }
 }

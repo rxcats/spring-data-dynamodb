@@ -75,7 +75,7 @@ public class SimpleDynamoDBPagingAndSortingRepository<T, ID> extends SimpleDynam
 
 		DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
 		// Scan to the end of the page after the requested page
-		long scanTo = pageable.getOffset() + (2 * pageable.getPageSize());
+		long scanTo = pageable.getOffset() + (2L * pageable.getPageSize());
 		scanExpression.setLimit((int) Math.min(scanTo, Integer.MAX_VALUE));
 		PaginatedScanList<T> paginatedScanList = dynamoDBOperations.scan(domainType, scanExpression);
 		Iterator<T> iterator = paginatedScanList.iterator();

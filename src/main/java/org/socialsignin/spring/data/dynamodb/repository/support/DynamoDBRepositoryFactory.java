@@ -100,7 +100,7 @@ public class DynamoDBRepositoryFactory extends RepositoryFactorySupport {
 	@Override
 	public <T, ID> DynamoDBEntityInformation<T, ID> getEntityInformation(final Class<T> domainClass) {
 
-		final DynamoDBEntityMetadataSupport<T, ID> metadata = new DynamoDBEntityMetadataSupport<>(domainClass);
+		final DynamoDBEntityMetadataSupport<T, ID> metadata = new DynamoDBEntityMetadataSupport<>(domainClass, this.dynamoDBOperations);
 		return metadata.getEntityInformation();
 	}
 

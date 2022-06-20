@@ -26,6 +26,7 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTypeConverted;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTypeConverter;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBVersionAttribute;
+import org.socialsignin.spring.data.dynamodb.core.DynamoDBOperations;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
@@ -68,54 +69,71 @@ public class DynamoDBEntityMetadataSupport<T, ID> implements DynamoDBHashKeyExtr
 	 *            must not be {@literal null}.
 	 */
 	public DynamoDBEntityMetadataSupport(final Class<T> domainType) {
-
-		Assert.notNull(domainType, "Domain type must not be null!");
-		this.domainType = domainType;
-
-		DynamoDBTable table = this.domainType.getAnnotation(DynamoDBTable.class);
-		Assert.notNull(table, "Domain type must by annotated with DynamoDBTable!");
-
-		this.dynamoDBTableName = table.tableName();
-		this.hashKeyPropertyName = null;
-		this.globalSecondaryIndexNames = new HashMap<>();
-		this.globalIndexHashKeyPropertyNames = new ArrayList<>();
-		this.globalIndexRangeKeyPropertyNames = new ArrayList<>();
-		ReflectionUtils.doWithMethods(domainType, method -> {
-			if (method.getAnnotation(DynamoDBHashKey.class) != null) {
-				hashKeyPropertyName = getPropertyNameForAccessorMethod(method);
-			}
-			if (method.getAnnotation(DynamoDBRangeKey.class) != null) {
-				hasRangeKey = true;
-			}
-			DynamoDBIndexRangeKey dynamoDBRangeKeyAnnotation = method.getAnnotation(DynamoDBIndexRangeKey.class);
-			DynamoDBIndexHashKey dynamoDBHashKeyAnnotation = method.getAnnotation(DynamoDBIndexHashKey.class);
-
-			if (dynamoDBRangeKeyAnnotation != null) {
-				addGlobalSecondaryIndexNames(method, dynamoDBRangeKeyAnnotation);
-			}
-			if (dynamoDBHashKeyAnnotation != null) {
-				addGlobalSecondaryIndexNames(method, dynamoDBHashKeyAnnotation);
-			}
-		});
-		ReflectionUtils.doWithFields(domainType, field -> {
-			if (field.getAnnotation(DynamoDBHashKey.class) != null) {
-				hashKeyPropertyName = getPropertyNameForField(field);
-			}
-			if (field.getAnnotation(DynamoDBRangeKey.class) != null) {
-				hasRangeKey = true;
-			}
-			DynamoDBIndexRangeKey dynamoDBRangeKeyAnnotation = field.getAnnotation(DynamoDBIndexRangeKey.class);
-			DynamoDBIndexHashKey dynamoDBHashKeyAnnotation = field.getAnnotation(DynamoDBIndexHashKey.class);
-
-			if (dynamoDBRangeKeyAnnotation != null) {
-				addGlobalSecondaryIndexNames(field, dynamoDBRangeKeyAnnotation);
-			}
-			if (dynamoDBHashKeyAnnotation != null) {
-				addGlobalSecondaryIndexNames(field, dynamoDBHashKeyAnnotation);
-			}
-		});
-		Assert.notNull(hashKeyPropertyName, "Unable to find hash key field or getter method on " + domainType + "!");
+		this(domainType, null);
 	}
+
+	/**
+	 * Creates a new {@link DynamoDBEntityMetadataSupport} for the given domain
+	 * type and dynamoDB mapper config.
+	 *
+	 * @param domainType
+	 *            must not be {@literal null}.
+	 * @param dynamoDBOperations
+	 *            dynamoDBOperations as populated from Spring Data DynamoDB Configuration
+	 */
+    public DynamoDBEntityMetadataSupport(final Class<T> domainType, DynamoDBOperations dynamoDBOperations) {
+
+        Assert.notNull(domainType, "Domain type must not be null!");
+        this.domainType = domainType;
+
+        DynamoDBTable table = this.domainType.getAnnotation(DynamoDBTable.class);
+        Assert.notNull(table, "Domain type must by annotated with DynamoDBTable!");
+
+		if (dynamoDBOperations != null) {
+			this.dynamoDBTableName = dynamoDBOperations.getOverriddenTableName(domainType, table.tableName());
+		} else {
+			this.dynamoDBTableName = table.tableName();
+		}
+        this.hashKeyPropertyName = null;
+        this.globalSecondaryIndexNames = new HashMap<>();
+        this.globalIndexHashKeyPropertyNames = new ArrayList<>();
+        this.globalIndexRangeKeyPropertyNames = new ArrayList<>();
+        ReflectionUtils.doWithMethods(domainType, method -> {
+            if (method.getAnnotation(DynamoDBHashKey.class) != null) {
+                hashKeyPropertyName = getPropertyNameForAccessorMethod(method);
+            }
+            if (method.getAnnotation(DynamoDBRangeKey.class) != null) {
+                hasRangeKey = true;
+            }
+            DynamoDBIndexRangeKey dynamoDBRangeKeyAnnotation = method.getAnnotation(DynamoDBIndexRangeKey.class);
+            DynamoDBIndexHashKey dynamoDBHashKeyAnnotation = method.getAnnotation(DynamoDBIndexHashKey.class);
+
+            if (dynamoDBRangeKeyAnnotation != null) {
+                addGlobalSecondaryIndexNames(method, dynamoDBRangeKeyAnnotation);
+            }
+            if (dynamoDBHashKeyAnnotation != null) {
+                addGlobalSecondaryIndexNames(method, dynamoDBHashKeyAnnotation);
+            }
+        });
+        ReflectionUtils.doWithFields(domainType, field -> {
+            if (field.getAnnotation(DynamoDBHashKey.class) != null) {
+                hashKeyPropertyName = getPropertyNameForField(field);
+            }
+            if (field.getAnnotation(DynamoDBRangeKey.class) != null) {
+                hasRangeKey = true;
+            }
+            DynamoDBIndexRangeKey dynamoDBRangeKeyAnnotation = field.getAnnotation(DynamoDBIndexRangeKey.class);
+            DynamoDBIndexHashKey dynamoDBHashKeyAnnotation = field.getAnnotation(DynamoDBIndexHashKey.class);
+
+            if (dynamoDBRangeKeyAnnotation != null) {
+                addGlobalSecondaryIndexNames(field, dynamoDBRangeKeyAnnotation);
+            }
+            if (dynamoDBHashKeyAnnotation != null) {
+                addGlobalSecondaryIndexNames(field, dynamoDBHashKeyAnnotation);
+            }
+        });
+        Assert.notNull(hashKeyPropertyName, "Unable to find hash key field or getter method on " + domainType + "!");
+    }
 
 	public DynamoDBEntityInformation<T, ID> getEntityInformation() {
 

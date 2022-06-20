@@ -1,3 +1,7 @@
+# 5.2.6
+
+## New Features
+
 # 5.2.5
 
 ## New Features

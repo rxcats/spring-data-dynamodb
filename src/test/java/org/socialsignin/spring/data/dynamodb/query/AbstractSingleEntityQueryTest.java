@@ -15,7 +15,6 @@
  */
 package org.socialsignin.spring.data.dynamodb.query;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.socialsignin.spring.data.dynamodb.core.DynamoDBOperations;
@@ -29,27 +28,36 @@ public class AbstractSingleEntityQueryTest {
 
 	@Mock
 	private DynamoDBOperations dynamoDBOperations;
-	@Mock
-	private User entity;
+
+	private final User entity = new User();
 
 	private AbstractSingleEntityQuery<User> underTest;
 
-	@Before
-	public void setUp() {
+	@Test
+	public void testGetResultList() {
 		underTest = new AbstractSingleEntityQuery<User>(dynamoDBOperations, User.class) {
 			@Override
 			public User getSingleResult() {
 				return entity;
 			}
 		};
-	}
 
-	@Test
-	public void testGetResultList() {
 		List<User> actual = underTest.getResultList();
 
 		assertEquals(1, actual.size());
 		assertEquals(entity, actual.get(0));
+	}
+
+	@Test
+	public void testGetResultListEmpty() {
+		underTest = new AbstractSingleEntityQuery<User>(dynamoDBOperations, User.class) {
+			@Override
+			public User getSingleResult() { return null; }
+		};
+
+		List<User> actual = underTest.getResultList();
+
+		assertEquals(0, actual.size());
 	}
 
 }
