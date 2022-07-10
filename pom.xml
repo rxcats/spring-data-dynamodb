@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright © 2018 spring-data-dynamodb (https://github.com/boostchicken/spring-data-dynamodb)
+    Copyright © 2018 spring-data-dynamodb (https://github.com/rxcats/spring-data-dynamodb)
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -267,7 +267,7 @@
                         </manifest>
                         <manifestEntries>
                             <Specification-Title>Spring Data</Specification-Title>
-                            <Specification-Version>2.7</Specification-Version>
+                            <Specification-Version>${spring-data.version}</Specification-Version>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -442,7 +442,7 @@
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>com.almworks.sqlite4java</groupId>
+                                    <groupId>${sqlite4java.groupId}</groupId>
                                     <artifactId>${sqlite4java.artifactId}</artifactId>
                                     <version>${sqlite4java.version}</version>
                                     <type>${sqlite4java.type}</type>
@@ -518,6 +518,20 @@
 
     <profiles>
         <profile>
+            <id>mac-aarch64</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                    <arch>aarch64</arch>
+                </os>
+            </activation>
+            <properties>
+                <sqlite4java.groupId>io.github.ganadist.sqlite4java</sqlite4java.groupId>
+                <sqlite4java.artifactId>libsqlite4java-osx-aarch64</sqlite4java.artifactId>
+                <sqlite4java.type>dylib</sqlite4java.type>
+            </properties>
+        </profile>
+        <profile>
             <id>mac</id>
             <activation>
                 <os>
@@ -525,6 +539,7 @@
                 </os>
             </activation>
             <properties>
+                <sqlite4java.groupId>io.github.ganadist.sqlite4java</sqlite4java.groupId>
                 <sqlite4java.artifactId>libsqlite4java-osx</sqlite4java.artifactId>
                 <sqlite4java.type>dylib</sqlite4java.type>
             </properties>
@@ -538,6 +553,7 @@
                 </os>
             </activation>
             <properties>
+                <sqlite4java.groupId>com.almworks.sqlite4java</sqlite4java.groupId>
                 <sqlite4java.artifactId>libsqlite4java-linux-i386</sqlite4java.artifactId>
                 <sqlite4java.type>so</sqlite4java.type>
             </properties>
@@ -551,6 +567,7 @@
                 </os>
             </activation>
             <properties>
+                <sqlite4java.groupId>com.almworks.sqlite4java</sqlite4java.groupId>
                 <sqlite4java.artifactId>libsqlite4java-linux-amd64</sqlite4java.artifactId>
                 <sqlite4java.type>so</sqlite4java.type>
             </properties>
@@ -564,6 +581,7 @@
                 </os>
             </activation>
             <properties>
+                <sqlite4java.groupId>com.almworks.sqlite4java</sqlite4java.groupId>
                 <sqlite4java.artifactId>libsqlite4java-win32-x86</sqlite4java.artifactId>
                 <sqlite4java.type>dll</sqlite4java.type>
             </properties>
@@ -577,6 +595,7 @@
                 </os>
             </activation>
             <properties>
+                <sqlite4java.groupId>com.almworks.sqlite4java</sqlite4java.groupId>
                 <sqlite4java.artifactId>sqlite4java-win32-x64</sqlite4java.artifactId>
                 <sqlite4java.type>dll</sqlite4java.type>
             </properties>
@@ -584,6 +603,7 @@
         <profile>
             <id>release</id>
             <properties>
+                <sqlite4java.groupId>com.almworks.sqlite4java</sqlite4java.groupId>
                 <sqlite4java.artifactId>sqlite4java-win32-x64</sqlite4java.artifactId>
                 <sqlite4java.type>dll</sqlite4java.type>
             </properties>
