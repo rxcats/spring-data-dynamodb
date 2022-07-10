@@ -302,6 +302,7 @@
                         <exclude>src/main/resources/**</exclude>
                         <exclude>**/*.psd</exclude>
                         <exclude>src/eclipse-java-google-style.xml</exclude>
+                        <exclude>**/settings.xml</exclude>
                     </excludes>
                 </configuration>
                 <executions>
