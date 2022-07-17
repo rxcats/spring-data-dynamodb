@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -46,8 +45,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.util.ClassTypeInformation;
 
-@Ignore
 @RunWith(MockitoJUnitRunner.class)
 public class AbstractDynamoDBQueryTest {
 
@@ -115,10 +114,15 @@ public class AbstractDynamoDBQueryTest {
     @Mock
     private ProjectionFactory factory;
 
+    private Method method;
+
     @Before
-    public void setUp() {
+    public void setUp() throws NoSuchMethodException {
         doReturn(UserRepository.class).when(metadata).getRepositoryInterface();
         doReturn(User.class).when(metadata).getReturnedDomainClass(any());
+
+        method = UserRepository.class.getMethod("findByName", String.class, Pageable.class);
+        doReturn(ClassTypeInformation.fromReturnTypeOf(method)).when(metadata).getReturnType(any());
     }
 
     private List<User> generateContent(long count) {
@@ -132,12 +136,11 @@ public class AbstractDynamoDBQueryTest {
     }
 
     @Test
-    public void testPaged() throws NoSuchMethodException, SecurityException {
+    public void testPaged() throws SecurityException {
         long total = 1;
         resultsRestrictionIfApplicable = 1;
         List<User> content = generateContent(total);
 
-        Method method = UserRepository.class.getMethod("findByName", String.class, Pageable.class);
         DynamoDBQueryMethod<User, String> dynamoDBQueryMethod = new DynamoDBQueryMethod<User, String>(method, metadata,
                 factory);
 
@@ -156,11 +159,10 @@ public class AbstractDynamoDBQueryTest {
     }
 
     @Test
-    public void testUnpaged() throws NoSuchMethodException, SecurityException {
+    public void testUnpaged() throws SecurityException {
         long total = 1;
         List<User> content = spy(generateContent(total));
 
-        Method method = UserRepository.class.getMethod("findByName", String.class, Pageable.class);
         DynamoDBQueryMethod<User, String> dynamoDBQueryMethod = new DynamoDBQueryMethod<User, String>(method, metadata,
                 factory);
 
