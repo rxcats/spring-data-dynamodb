@@ -38,6 +38,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -98,7 +99,8 @@ public class DynamoDBTemplateTest {
     @Test
     public void testConstructorOptionalPreconfiguredDynamoDBMapper() {
         // Introduced constructor via #91 should not fail its assert
-        this.dynamoDBTemplate = new DynamoDBTemplate(dynamoDB, dynamoDBMapper, dynamoDBMapperConfig);
+        this.dynamoDBTemplate =
+                new DynamoDBTemplate(dynamoDB, dynamoDBMapper, dynamoDBMapperConfig);
 
         assertTrue("The constructor should not fail with an assert error", true);
     }
@@ -161,6 +163,14 @@ public class DynamoDBTemplateTest {
     public void testLoadByHashKeyAndRangeKey_WhenDynamoDBMapperReturnsNull() {
         Playlist playlist = dynamoDBTemplate.load(Playlist.class, "someHashKey", "someRangeKey");
         Assert.assertNull(playlist);
+    }
+
+    @Test
+    public void testBatchSaveWithTransaction() {
+        List<User> users = new ArrayList<>();
+        dynamoDBTemplate.batchSaveWithTransaction(users);
+
+        verify(dynamoDBMapper).transactionWrite(any());
     }
 
 }

@@ -25,6 +25,7 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
 import com.amazonaws.services.dynamodbv2.datamodeling.KeyPair;
 import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedQueryList;
 import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedScanList;
+import com.amazonaws.services.dynamodbv2.datamodeling.TransactionWriteRequest;
 import com.amazonaws.services.dynamodbv2.model.QueryRequest;
 import com.amazonaws.services.dynamodbv2.model.QueryResult;
 import com.amazonaws.services.dynamodbv2.model.Select;
@@ -234,5 +235,20 @@ public class DynamoDBTemplate implements DynamoDBOperations, ApplicationContextA
             }
         }
 
+    }
+
+    @Override
+    public void batchSaveWithTransaction(Iterable<?> entities) {
+        entities.forEach(it -> maybeEmitEvent(it, BeforeSaveEvent::new));
+
+        TransactionWriteRequest twr = new TransactionWriteRequest();
+
+        while (entities.iterator().hasNext()) {
+            twr.addUpdate(entities.iterator().next());
+        }
+
+        dynamoDBMapper.transactionWrite(twr);
+
+        entities.forEach(it -> maybeEmitEvent(it, AfterSaveEvent::new));
     }
 }

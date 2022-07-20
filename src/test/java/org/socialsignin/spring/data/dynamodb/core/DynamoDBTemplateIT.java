@@ -16,10 +16,6 @@
 package org.socialsignin.spring.data.dynamodb.core;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
-import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.socialsignin.spring.data.dynamodb.domain.sample.User;
@@ -31,7 +27,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Integration test that interacts with DynamoDB Local instance.
@@ -84,6 +84,27 @@ public class DynamoDBTemplateIT {
 
         // Get again.
         assert dynamoDBTemplate.load(User.class, user.getId()) == null;
+    }
+
+    private User createUser(String id) {
+        User user = new User();
+        user.setName(id);
+        user.setId(id);
+        return user;
+    }
+
+    @Test
+    public void testBatchSaveWithTransaction() {
+        List<User> users = new ArrayList<>();
+        users.add(createUser("User#1"));
+        users.add(createUser("User#2"));
+        users.add(createUser("User#3"));
+
+        dynamoDBTemplate.batchSaveWithTransaction(users);
+
+        assertNotNull(dynamoDBTemplate.load(User.class, "User#1"));
+        assertNotNull(dynamoDBTemplate.load(User.class, "User#2"));
+        assertNotNull(dynamoDBTemplate.load(User.class, "User#3"));
     }
 
 }

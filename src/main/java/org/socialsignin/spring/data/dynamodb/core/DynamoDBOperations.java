@@ -71,4 +71,6 @@ public interface DynamoDBOperations {
      * @return Corresponding DynamoDB table model
      */
     <T> DynamoDBMapperTableModel<T> getTableModel(Class<T> domainClass);
+
+    void batchSaveWithTransaction(Iterable<?> entities);
 }
