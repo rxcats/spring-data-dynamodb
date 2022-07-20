@@ -28,6 +28,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.socialsignin.spring.data.dynamodb.domain.TransactionOperationEntity;
 import org.socialsignin.spring.data.dynamodb.domain.sample.Playlist;
 import org.socialsignin.spring.data.dynamodb.domain.sample.User;
 import org.springframework.context.ApplicationContext;
@@ -166,9 +167,26 @@ public class DynamoDBTemplateTest {
     }
 
     @Test
-    public void testBatchSaveWithTransaction() {
+    public void testTransactionWriteWithUpdate() {
         List<User> users = new ArrayList<>();
-        dynamoDBTemplate.batchSaveWithTransaction(users);
+        dynamoDBTemplate.transactionWrite(TransactionOperationEntity.withUpdate(users));
+
+        verify(dynamoDBMapper).transactionWrite(any());
+    }
+
+    @Test
+    public void testTransactionWriteWithDelete() {
+        List<User> users = new ArrayList<>();
+        dynamoDBTemplate.transactionWrite(TransactionOperationEntity.withDelete(users));
+
+        verify(dynamoDBMapper).transactionWrite(any());
+    }
+
+    @Test
+    public void testTransactionWriteWithUpdateDelete() {
+        List<User> updates = new ArrayList<>();
+        List<User> deletes = new ArrayList<>();
+        dynamoDBTemplate.transactionWrite(new TransactionOperationEntity(updates, deletes));
 
         verify(dynamoDBMapper).transactionWrite(any());
     }

@@ -29,6 +29,7 @@ import com.amazonaws.services.dynamodbv2.datamodeling.TransactionWriteRequest;
 import com.amazonaws.services.dynamodbv2.model.QueryRequest;
 import com.amazonaws.services.dynamodbv2.model.QueryResult;
 import com.amazonaws.services.dynamodbv2.model.Select;
+import org.socialsignin.spring.data.dynamodb.domain.TransactionOperationEntity;
 import org.socialsignin.spring.data.dynamodb.mapping.event.AfterDeleteEvent;
 import org.socialsignin.spring.data.dynamodb.mapping.event.AfterLoadEvent;
 import org.socialsignin.spring.data.dynamodb.mapping.event.AfterQueryEvent;
@@ -44,6 +45,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -238,17 +240,30 @@ public class DynamoDBTemplate implements DynamoDBOperations, ApplicationContextA
     }
 
     @Override
-    public void batchSaveWithTransaction(Iterable<?> entities) {
-        entities.forEach(it -> maybeEmitEvent(it, BeforeSaveEvent::new));
+    public void transactionWrite(TransactionOperationEntity transactionOperationEntity) {
+        List<?> updateEntities = transactionOperationEntity.getUpdateEntities();
+        List<?> deleteEntities = transactionOperationEntity.getDeleteEntities();
 
         TransactionWriteRequest twr = new TransactionWriteRequest();
 
-        while (entities.iterator().hasNext()) {
-            twr.addUpdate(entities.iterator().next());
+        if (!CollectionUtils.isEmpty(updateEntities)) {
+            updateEntities.forEach(it -> maybeEmitEvent(it, BeforeSaveEvent::new));
+            updateEntities.forEach(twr::addUpdate);
+        }
+
+        if (!CollectionUtils.isEmpty(deleteEntities)) {
+            deleteEntities.forEach(it -> maybeEmitEvent(it, BeforeDeleteEvent::new));
+            deleteEntities.forEach(twr::addDelete);
         }
 
         dynamoDBMapper.transactionWrite(twr);
 
-        entities.forEach(it -> maybeEmitEvent(it, AfterSaveEvent::new));
+        if (!CollectionUtils.isEmpty(updateEntities)) {
+            updateEntities.forEach(it -> maybeEmitEvent(it, AfterSaveEvent::new));
+        }
+
+        if (!CollectionUtils.isEmpty(deleteEntities)) {
+            deleteEntities.forEach(it -> maybeEmitEvent(it, AfterDeleteEvent::new));
+        }
     }
 }

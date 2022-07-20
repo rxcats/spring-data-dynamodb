@@ -23,12 +23,13 @@ import com.amazonaws.services.dynamodbv2.datamodeling.KeyPair;
 import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedQueryList;
 import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedScanList;
 import com.amazonaws.services.dynamodbv2.model.QueryRequest;
+import org.socialsignin.spring.data.dynamodb.domain.TransactionOperationEntity;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * Interface to DynmaoDB - as seen from the Spring-Data world
+ * Interface to DynamoDB - as seen from the Spring-Data world
  */
 public interface DynamoDBOperations {
 
@@ -72,5 +73,5 @@ public interface DynamoDBOperations {
      */
     <T> DynamoDBMapperTableModel<T> getTableModel(Class<T> domainClass);
 
-    void batchSaveWithTransaction(Iterable<?> entities);
+    void transactionWrite(TransactionOperationEntity transactionOperationEntity);
 }
