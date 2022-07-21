@@ -41,4 +41,32 @@ public class TransactionOperationEntity {
     public List<?> getDeleteEntities() {
         return deleteEntities;
     }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private List<?> updateEntities;
+        private List<?> deleteEntities;
+
+        private Builder() {
+
+        }
+
+        public Builder withUpdate(List<?> entities) {
+            this.updateEntities = entities;
+            return this;
+        }
+
+        public Builder withDelete(List<?> entities) {
+            this.deleteEntities = entities;
+            return this;
+        }
+
+        public TransactionOperationEntity build() {
+            return new TransactionOperationEntity(updateEntities, deleteEntities);
+        }
+
+    }
 }
