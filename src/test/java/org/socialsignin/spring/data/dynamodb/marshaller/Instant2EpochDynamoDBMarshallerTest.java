@@ -18,18 +18,18 @@ package org.socialsignin.spring.data.dynamodb.marshaller;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Date;
+import java.time.Instant;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-public class Date2EpocheDynamoDBMarshallerTest {
+public class Instant2EpochDynamoDBMarshallerTest {
 
-    private Date2EpocheDynamoDBMarshaller underTest;
+    private Instant2EpochDynamoDBMarshaller underTest;
 
     @Before
     public void setUp() {
-        underTest = new Date2EpocheDynamoDBMarshaller();
+        underTest = new Instant2EpochDynamoDBMarshaller();
     }
 
     @Test
@@ -41,27 +41,25 @@ public class Date2EpocheDynamoDBMarshallerTest {
 
     @Test
     public void testMarshall() {
-        assertEquals("0", underTest.marshall(new Date(0)));
-        assertEquals("0", underTest.convert(new Date(0)));
+        assertEquals("0", underTest.marshall(Instant.ofEpochMilli(0)));
+        assertEquals("0", underTest.convert(Instant.ofEpochMilli(0)));
     }
 
     @Test
     public void testUnmarshallNull() {
-        Date actual = underTest.unmarshall(Date.class, null);
+        Instant actual = underTest.unmarshall(Instant.class, null);
 
         assertNull(actual);
     }
 
     @Test
     public void testUnmarshall() {
-        assertEquals(new Date(0), underTest.unmarshall(Date.class, "0"));
-        assertEquals(new Date(0), underTest.unconvert("0"));
-        ;
-
+        assertEquals(Instant.ofEpochMilli(0), underTest.unmarshall(Instant.class, "0"));
+        assertEquals(Instant.ofEpochMilli(0), underTest.unconvert("0"));
     }
 
     @Test(expected = NumberFormatException.class)
     public void testUnmarshallGarbage() {
-        underTest.unmarshall(Date.class, "something");
+        underTest.unmarshall(Instant.class, "something");
     }
 }

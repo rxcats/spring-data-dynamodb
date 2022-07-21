@@ -22,7 +22,7 @@ import org.springframework.util.StringUtils;
 import java.time.Instant;
 
 @SuppressWarnings("deprecation")
-public class Instant2EpocheDynamoDBMarshaller
+public class Instant2EpochDynamoDBMarshaller
         implements DynamoDBTypeConverter<String, Instant>, DynamoDBMarshaller<Instant> {
 
     @Override

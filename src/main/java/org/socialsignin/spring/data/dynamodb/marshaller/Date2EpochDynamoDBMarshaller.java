@@ -20,30 +20,30 @@ import java.text.FieldPosition;
 import java.text.ParsePosition;
 import java.util.Date;
 
-public class Date2EpocheDynamoDBMarshaller extends DateDynamoDBMarshaller {
+public class Date2EpochDynamoDBMarshaller extends DateDynamoDBMarshaller {
 
-    private static final class EpcoheDateFormat extends DateFormat {
+    private static final class EpochDateFormat extends DateFormat {
         private static final long serialVersionUID = 2969564523817434535L;
 
         @Override
         public StringBuffer format(Date date, StringBuffer toAppendTo, FieldPosition fieldPosition) {
-            long epoche = date.getTime();
-            toAppendTo.append(epoche);
+            long epoch = date.getTime();
+            toAppendTo.append(epoch);
             return toAppendTo;
         }
 
         @Override
         public Date parse(String source, ParsePosition pos) {
-            long epoche = Long.parseLong(source);
+            long epoch = Long.parseLong(source);
             pos.setIndex(source.length());
-            return new Date(epoche);
+            return new Date(epoch);
         }
 
     };
 
     @Override
     public DateFormat getDateFormat() {
-        return new EpcoheDateFormat();
+        return new EpochDateFormat();
     }
 
 }
