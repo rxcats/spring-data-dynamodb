@@ -74,4 +74,6 @@ public interface DynamoDBOperations {
     <T> DynamoDBMapperTableModel<T> getTableModel(Class<T> domainClass);
 
     void transactionWrite(TransactionOperationEntity transactionOperationEntity);
+
+    List<Object> transactionLoad(List<Object> entities);
 }

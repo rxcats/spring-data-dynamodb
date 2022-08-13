@@ -191,4 +191,12 @@ public class DynamoDBTemplateTest {
         verify(dynamoDBMapper).transactionWrite(any());
     }
 
+    @Test
+    public void testTransactionLoad() {
+        List<Object> users = new ArrayList<>();
+        List<Object> results = dynamoDBTemplate.transactionLoad(users);
+
+        Assert.assertEquals(0, results.size());
+    }
+
 }

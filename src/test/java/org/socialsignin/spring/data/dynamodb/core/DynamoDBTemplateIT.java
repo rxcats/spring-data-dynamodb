@@ -20,6 +20,7 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.socialsignin.spring.data.dynamodb.domain.TransactionOperationEntity;
+import org.socialsignin.spring.data.dynamodb.domain.sample.Installation;
 import org.socialsignin.spring.data.dynamodb.domain.sample.User;
 import org.socialsignin.spring.data.dynamodb.repository.config.EnableDynamoDBRepositories;
 import org.socialsignin.spring.data.dynamodb.utils.DynamoDBLocalResource;
@@ -30,9 +31,11 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
@@ -95,6 +98,14 @@ public class DynamoDBTemplateIT {
         user.setName(id);
         user.setId(id);
         return user;
+    }
+
+    private Installation createInstallation(String id) {
+        Installation installation = new Installation();
+        installation.setId(id);
+        installation.setSystemId("SystemId");
+        installation.setUpdatedAt(new Date());
+        return installation;
     }
 
     @Test
@@ -162,6 +173,26 @@ public class DynamoDBTemplateIT {
 
         assertThrows(AmazonServiceException.class,
             () -> dynamoDBTemplate.transactionWrite(TransactionOperationEntity.withUpdate(updates)));
+    }
+
+    @Test
+    public void testTransactionLoad() {
+        List<Object> users = new ArrayList<>();
+        users.add(createUser("User#1"));
+        dynamoDBTemplate.batchSave(users);
+        dynamoDBTemplate.delete(createUser("User#2"));
+
+        List<Object> targets = new ArrayList<>();
+        targets.add(createUser("User#1"));
+        targets.add(createUser("User#2"));
+
+        List<Object> results = dynamoDBTemplate.transactionLoad(targets);
+
+        assertEquals(2, results.size());
+        assertNotNull(results.get(0));
+        assertEquals(User.class, results.get(0).getClass());
+        assertEquals("User#1", ((User) results.get(0)).getId());
+        assertNull(results.get(1));
     }
 
 }

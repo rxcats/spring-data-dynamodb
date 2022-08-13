@@ -25,6 +25,7 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
 import com.amazonaws.services.dynamodbv2.datamodeling.KeyPair;
 import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedQueryList;
 import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedScanList;
+import com.amazonaws.services.dynamodbv2.datamodeling.TransactionLoadRequest;
 import com.amazonaws.services.dynamodbv2.datamodeling.TransactionWriteRequest;
 import com.amazonaws.services.dynamodbv2.model.QueryRequest;
 import com.amazonaws.services.dynamodbv2.model.QueryResult;
@@ -265,5 +266,14 @@ public class DynamoDBTemplate implements DynamoDBOperations, ApplicationContextA
         if (!CollectionUtils.isEmpty(deleteEntities)) {
             deleteEntities.forEach(it -> maybeEmitEvent(it, AfterDeleteEvent::new));
         }
+    }
+
+    @Override
+    public List<Object> transactionLoad(List<Object> entities) {
+        TransactionLoadRequest tlr = new TransactionLoadRequest();
+        entities.forEach(tlr::addLoad);
+        List<Object> results = dynamoDBMapper.transactionLoad(tlr);
+        results.forEach(entity -> maybeEmitEvent(entity, AfterLoadEvent::new));
+        return results;
     }
 }
