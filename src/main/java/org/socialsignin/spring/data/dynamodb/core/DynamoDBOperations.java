@@ -22,6 +22,7 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
 import com.amazonaws.services.dynamodbv2.datamodeling.KeyPair;
 import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedQueryList;
 import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedScanList;
+import com.amazonaws.services.dynamodbv2.datamodeling.QueryResultPage;
 import com.amazonaws.services.dynamodbv2.model.QueryRequest;
 import org.socialsignin.spring.data.dynamodb.domain.TransactionOperationEntity;
 
@@ -42,6 +43,8 @@ public interface DynamoDBOperations {
     <T> PaginatedQueryList<T> query(Class<T> clazz, QueryRequest queryRequest);
 
     <T> PaginatedQueryList<T> query(Class<T> domainClass, DynamoDBQueryExpression<T> queryExpression);
+
+    <T> QueryResultPage<T> queryPage(Class<T> domainClass, DynamoDBQueryExpression<T> queryExpression);
 
     <T> PaginatedScanList<T> scan(Class<T> domainClass, DynamoDBScanExpression scanExpression);
 

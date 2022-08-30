@@ -33,6 +33,7 @@ package org.socialsignin.spring.data.dynamodb.mapping.event;
 
 import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedQueryList;
 import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedScanList;
+import com.amazonaws.services.dynamodbv2.datamodeling.QueryResultPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
@@ -88,6 +89,10 @@ public abstract class AbstractDynamoDBEventListener<E> implements ApplicationLis
         } else if (event instanceof AfterQueryEvent) {
 
             publishEachElement((PaginatedQueryList<?>) source, this::onAfterQuery);
+            return;
+        } else if (event instanceof AfterQueryPageEvent) {
+            QueryResultPage<?> queryResultPage = (QueryResultPage<?>) source;
+            publishEachElement(queryResultPage.getResults(), this::onAfterQuery);
             return;
         }
         // Check for matching domain type and invoke callbacks

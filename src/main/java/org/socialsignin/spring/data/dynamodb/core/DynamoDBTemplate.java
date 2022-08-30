@@ -25,6 +25,7 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
 import com.amazonaws.services.dynamodbv2.datamodeling.KeyPair;
 import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedQueryList;
 import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedScanList;
+import com.amazonaws.services.dynamodbv2.datamodeling.QueryResultPage;
 import com.amazonaws.services.dynamodbv2.datamodeling.TransactionLoadRequest;
 import com.amazonaws.services.dynamodbv2.datamodeling.TransactionWriteRequest;
 import com.amazonaws.services.dynamodbv2.model.QueryRequest;
@@ -34,6 +35,7 @@ import org.socialsignin.spring.data.dynamodb.domain.TransactionOperationEntity;
 import org.socialsignin.spring.data.dynamodb.mapping.event.AfterDeleteEvent;
 import org.socialsignin.spring.data.dynamodb.mapping.event.AfterLoadEvent;
 import org.socialsignin.spring.data.dynamodb.mapping.event.AfterQueryEvent;
+import org.socialsignin.spring.data.dynamodb.mapping.event.AfterQueryPageEvent;
 import org.socialsignin.spring.data.dynamodb.mapping.event.AfterSaveEvent;
 import org.socialsignin.spring.data.dynamodb.mapping.event.AfterScanEvent;
 import org.socialsignin.spring.data.dynamodb.mapping.event.BeforeDeleteEvent;
@@ -97,6 +99,13 @@ public class DynamoDBTemplate implements DynamoDBOperations, ApplicationContextA
         PaginatedQueryList<T> results = dynamoDBMapper.query(domainClass, queryExpression);
         maybeEmitEvent(results, AfterQueryEvent::new);
         return results;
+    }
+
+    @Override
+    public <T> QueryResultPage<T> queryPage(Class<T> domainClass, DynamoDBQueryExpression<T> queryExpression) {
+        QueryResultPage<T> resultPage = dynamoDBMapper.queryPage(domainClass, queryExpression);
+        maybeEmitEvent(resultPage, AfterQueryPageEvent::new);
+        return resultPage;
     }
 
     @Override

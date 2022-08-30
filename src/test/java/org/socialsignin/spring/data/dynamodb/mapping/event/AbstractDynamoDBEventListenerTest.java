@@ -17,6 +17,7 @@ package org.socialsignin.spring.data.dynamodb.mapping.event;
 
 import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedQueryList;
 import com.amazonaws.services.dynamodbv2.datamodeling.PaginatedScanList;
+import com.amazonaws.services.dynamodbv2.datamodeling.QueryResultPage;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,6 +45,9 @@ public class AbstractDynamoDBEventListenerTest {
     private PaginatedScanList<User> sampleScanList;
 
     @Mock
+    private QueryResultPage<User> sampleQueryResultPageList;
+
+    @Mock
     private DynamoDBMappingEvent<User> brokenEvent;
 
     private AbstractDynamoDBEventListener<User> underTest;
@@ -57,6 +61,7 @@ public class AbstractDynamoDBEventListenerTest {
         queryList.add(sampleEntity);
         when(sampleQueryList.stream()).thenReturn(queryList.stream());
         when(sampleScanList.stream()).thenReturn(queryList.stream());
+        when(sampleQueryResultPageList.getResults()).thenReturn(queryList);
     }
 
     @Test(expected = AssertionError.class)
@@ -172,6 +177,19 @@ public class AbstractDynamoDBEventListenerTest {
         verify(underTest, never()).onAfterScan(any());
         verify(underTest, never()).onBeforeDelete(any());
         verify(underTest).onBeforeSave(sampleEntity);
+    }
+
+    @Test
+    public void testAfterQueryPage() {
+        underTest.onApplicationEvent(new AfterQueryPageEvent<>(sampleQueryResultPageList));
+
+        verify(underTest, never()).onAfterDelete(any());
+        verify(underTest, never()).onAfterLoad(any());
+        verify(underTest).onAfterQuery(sampleEntity);
+        verify(underTest, never()).onAfterSave(any());
+        verify(underTest, never()).onAfterScan(any());
+        verify(underTest, never()).onBeforeDelete(any());
+        verify(underTest, never()).onBeforeSave(any());
     }
 
 }
